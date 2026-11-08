@@ -25,13 +25,29 @@ export default function Login() {
 
     try {
       setLoading(true);
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      
+      // 1. Sign in
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email: form.identifier,
         password: form.password,
       });
 
       if (signInError) throw signInError;
-      navigate('/queue'); 
+
+      // 2. Check the user's role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', authData.user.id)
+        .single();
+
+      // 3. Redirect based on role
+      if (profile?.role === 'employee' || profile?.role === 'owner') {
+        navigate('/employee'); // Send staff to employee dashboard
+      } else {
+        navigate('/dashboard'); // Send customers to customer dashboard
+      }
+
     } catch (err) {
       setError(err?.message || "Login failed. Please try again.");
     } finally {
@@ -39,13 +55,12 @@ export default function Login() {
     }
   };
 
-  // ADDED: Google Login Logic
   const handleGoogleLogin = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/queue' // Redirects to queue after login
+          redirectTo: window.location.origin + '/dashboard' 
         }
       });
       if (error) throw error;
@@ -114,7 +129,6 @@ export default function Login() {
 
           <div className="login__divider"><span>or</span></div>
 
-          {/* ADDED: Google Login Button */}
           <button type="button" className="btn btn--ghost" onClick={handleGoogleLogin} style={{ backgroundColor: 'white', color: '#333', border: 'none' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M22.56 12.25C22.56 11.47 22.49 10.72 22.36 10H12V14.26H17.92C17.67 15.63 16.86 16.79 15.69 17.57V20.34H19.26C21.35 18.42 22.56 15.6 22.56 12.25Z" fill="#4285F4"/>
@@ -125,7 +139,7 @@ export default function Login() {
             Continue with Google
           </button>
 
-          <button type="button" className="btn btn--ghost" onClick={() => navigate('/queue')}>
+          <button type="button" className="btn btn--ghost" onClick={() => navigate('/dashboard')}>
             <Car size={26} /> Continue as Guest
           </button>
         </form>

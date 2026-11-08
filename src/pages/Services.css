@@ -1,0 +1,124 @@
+/* ============ WashFlow Services ============ */
+.services-page {
+  position: relative;
+  min-height: 100vh;
+  color: white;
+  padding: 40px;
+  font-family: "Poppins", "Inter", system-ui, sans-serif;
+  
+  /* ADDED BACKGROUND IMAGE */
+  background: url("/assets/dash-bg.png") center center / cover no-repeat;
+  background-attachment: fixed;
+  overflow: hidden;
+}
+
+/* Dark overlay so the text is readable over the image */
+.services-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 20, 40, 0.85);
+  z-index: 1;
+}
+
+.services-container {
+  position: relative;
+  z-index: 2; /* Keeps content above the overlay */
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.back-btn {
+  background: transparent;
+  border: none;
+  color: #19a7ff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  margin-bottom: 30px;
+  font-size: 1.1rem;
+  font-family: inherit;
+  transition: color 0.2s ease;
+}
+
+.back-btn:hover {
+  color: #fff;
+}
+
+.services-title {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.services-subtitle {
+  color: #a0b3d6;
+  margin-bottom: 40px;
+  font-size: 1.1rem;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.service-card {
+  background: rgba(10, 29, 59, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(25, 167, 255, 0.3);
+  padding: 30px;
+  border-radius: 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(11, 99, 246, 0.2);
+}
+
+.service-card h2 {
+  font-size: 1.5rem;
+  color: #19a7ff;
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.service-card-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.service-price {
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+
+.service-time {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #a0b3d6;
+}
+
+.service-book-btn {
+  width: 100%;
+  padding: 12px;
+  background: #0b63f6;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: background 0.2s ease;
+}
+
+.service-book-btn:hover {
+  background: #1272ff;
+}

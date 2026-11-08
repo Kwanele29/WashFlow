@@ -15,7 +15,7 @@
   color: #fff;
   
   /* BACKGROUND FIX */
-  background: url("/assets/car-back.png") center / cover no-repeat, #061226;
+  background: url("/assets/dash-bg.png") center / cover no-repeat, #061226;
   background-attachment: fixed;
   
   overflow: hidden;

@@ -1,0 +1,186 @@
+/* ============ WashFlow Employee Dashboard ============ */
+.emp-page {
+  min-height: 100vh;
+  background: url("/assets/dash-bg.png") center center / cover no-repeat;
+  background-attachment: fixed;
+  position: relative;
+  padding: 40px;
+  color: white;
+  font-family: "Poppins", "Inter", system-ui, sans-serif;
+}
+
+.emp-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 12, 30, 0.9);
+  z-index: 1;
+}
+
+.emp-container {
+  position: relative;
+  z-index: 2;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.emp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.emp-header h1 {
+  margin: 0;
+  font-size: 2.2rem;
+}
+
+.emp-header p {
+  margin: 5px 0 0 0;
+  color: #a0b3d6;
+}
+
+/* THE FIXED LOGOUT BUTTON */
+.emp-logout-btn {
+  padding: 10px 20px;
+  background: rgba(220, 50, 50, 0.2) !important;
+  color: #ff8a8a !important;
+  border: 1px solid #ff8a8a !important;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+
+.emp-logout-btn:hover {
+  background: rgba(220, 50, 50, 0.4) !important;
+}
+
+.emp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.emp-column-header {
+  margin-bottom: 15px;
+}
+
+.emp-column h2 {
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.emp-column h2.waiting { color: #19a7ff; }
+.emp-column h2.washing { color: #f59e0b; }
+
+/* THE GLASS CARD AROUND THE LISTS */
+.emp-list-card {
+  background: rgba(10, 29, 59, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 20px;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.emp-ticket {
+  background: rgba(7, 20, 40, 0.8);
+  border: 1px solid rgba(25, 167, 255, 0.3);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.emp-ticket.is-washing {
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.emp-ticket-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.emp-ticket-position {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.emp-service-badge {
+  background: #0b63f6;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.emp-ticket.is-washing .emp-service-badge {
+  background: #f59e0b;
+  color: #000;
+}
+
+.emp-ticket-customer {
+  color: #a0b3d6;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+}
+
+.emp-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.emp-btn:hover {
+  transform: translateY(-2px);
+}
+
+.emp-btn-start {
+  background: #16a34a;
+  color: white;
+}
+
+.emp-btn-complete {
+  background: #0b63f6;
+  color: white;
+}
+
+/* THE BEAUTIFUL EMPTY STATE */
+.emp-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #a0b3d6;
+  gap: 15px;
+}
+
+.emp-empty p {
+  font-size: 1.1rem;
+  margin: 0;
+}

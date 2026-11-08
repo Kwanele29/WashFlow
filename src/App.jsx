@@ -1,19 +1,32 @@
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import WashFlowHome from './pages/WashFlowHome'
 import Login from './pages/Login'
-// Make sure this matches your actual file name exactly (Signup vs SignUp)
 import Signup from './pages/Signup' 
 import CustomerQueue from './pages/CustomerQueue'
 import EmployeeDashboard from './pages/EmployeeDashboard'
+import Dashboard from './pages/Dashboard'
+import Services from './pages/Services'
+import Account from './pages/Account'
 
 function HomeWrapper() {
   const navigate = useNavigate()
   return (
     <WashFlowHome 
       onJoinQueue={() => navigate('/login')} 
-      onTrackQueue={() => navigate('/queue')}
+      onTrackQueue={() => navigate('/dashboard')}
       onSignIn={() => navigate('/login')}
       onCreateAccount={() => navigate('/signup')} 
+    />
+  )
+}
+
+function DashboardWrapper() {
+  const navigate = useNavigate()
+  return (
+    <Dashboard 
+      onLogout={async () => {
+        navigate('/login')
+      }} 
     />
   )
 }
@@ -25,8 +38,11 @@ function App() {
         <Route path="/" element={<HomeWrapper />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/dashboard" element={<DashboardWrapper />} />
         <Route path="/queue" element={<CustomerQueue />} />
         <Route path="/employee" element={<EmployeeDashboard />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/account" element={<Account />} />
       </Routes>
     </BrowserRouter>
   )

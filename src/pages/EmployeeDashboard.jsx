@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { Play, CheckCircle, Car, LogOut } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import './EmployeeDashboard.css'
 
 export default function EmployeeDashboard() {
   const [queue, setQueue] = useState([])
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetchQueue()
@@ -13,40 +17,123 @@ export default function EmployeeDashboard() {
   }, [])
 
   async function fetchQueue() {
-    const { data } = await supabase
+    // FETCHING WITHOUT THE PROFILE JOIN FIRST (To isolate the issue)
+    const { data, error } = await supabase
       .from('queue_tickets')
       .select('*, services(name)')
-      .eq('status', 'waiting')
+      .in('status', ['waiting', 'washing'])
       .order('created_at', { ascending: true })
-    if (data) setQueue(data)
+      
+    if (error) {
+      console.error("SUPABASE ERROR:", error)
+    } else {
+      console.log("RAW DATA FROM SUPABASE:", data)
+      if (data) setQueue(data)
+    }
   }
 
-  async function startWash(ticketId) {
-    const mockEmployeeId = '11111111-1111-1111-1111-111111111111'
+  async function updateStatus(ticketId, newStatus) {
+    const updates = { status: newStatus }
+    
+    if (newStatus === 'washing') {
+      const { data } = await supabase.auth.getUser()
+      updates.assigned_employee = data?.user?.id
+      updates.started_at = new Date()
+    } else if (newStatus === 'completed') {
+      updates.completed_at = new Date()
+    }
+
     await supabase
       .from('queue_tickets')
-      .update({ status: 'washing', assigned_employee: mockEmployeeId, started_at: new Date() })
+      .update(updates)
       .eq('id', ticketId)
   }
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    navigate('/login')
+  }
+
+  const waitingCars = queue.filter(q => q.status === 'waiting')
+  const washingCars = queue.filter(q => q.status === 'washing')
+
   return (
-    <div style={{ padding: '50px', background: '#071428', minHeight: '100vh', color: 'white' }}>
-      <h2>Employee Dashboard - Waiting Cars</h2>
-      <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginTop: '20px' }}>
-        {queue.map((ticket, index) => (
-          <div key={ticket.id} style={{ border: '1px solid #1a3b73', background: '#0a1d3b', padding: '20px', borderRadius: '10px', width: '220px' }}>
-            <h3>Ticket: #{index + 1}</h3>
-            <p>Service: {ticket.services?.name}</p>
-            <button 
-              onClick={() => startWash(ticket.id)}
-              style={{ background: '#16a34a', color: 'white', border: 'none', padding: '10px', borderRadius: '5px', width: '100%', cursor: 'pointer', marginTop: '10px' }}
-            >
-              Start Wash
-            </button>
+    <div className="emp-page">
+      <div className="emp-container">
+        
+        <div className="emp-header">
+          <div>
+            <h1>Employee Dashboard</h1>
+            <p>Manage the wash bay and update the queue.</p>
           </div>
-        ))}
+          <button onClick={handleLogout} className="emp-logout-btn">
+            <LogOut size={18} /> Logout
+          </button>
+        </div>
+
+        <div className="emp-grid">
+          {/* WAITING QUEUE */}
+          <div className="emp-column">
+            <div className="emp-column-header">
+              <h2 className="waiting"><Car size={24} /> Waiting ({waitingCars.length})</h2>
+            </div>
+            <div className="emp-list-card">
+              {waitingCars.map((ticket, index) => (
+                <div key={ticket.id} className="emp-ticket">
+                  <div className="emp-ticket-top">
+                    <span className="emp-ticket-position">Position #{index + 1}</span>
+                    <span className="emp-service-badge">{ticket.services?.name || 'Wash'}</span>
+                  </div>
+                  <p className="emp-ticket-customer">Ticket ID: {ticket.id}</p>
+                  <button 
+                    onClick={() => updateStatus(ticket.id, 'washing')}
+                    className="emp-btn emp-btn-start"
+                  >
+                    <Play size={18} /> Start Wash
+                  </button>
+                </div>
+              ))}
+              {waitingCars.length === 0 && (
+                <div className="emp-empty">
+                  <Car size={48} opacity={0.2} />
+                  <p>No cars waiting right now.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* BEING WASHED */}
+          <div className="emp-column">
+            <div className="emp-column-header">
+              <h2 className="washing"><CheckCircle size={24} /> Being Washed ({washingCars.length})</h2>
+            </div>
+            <div className="emp-list-card">
+              {washingCars.map((ticket) => (
+                <div key={ticket.id} className="emp-ticket is-washing">
+                  <div className="emp-ticket-top">
+                    <span className="emp-ticket-position">In Wash Bay</span>
+                    <span className="emp-service-badge">{ticket.services?.name || 'Wash'}</span>
+                  </div>
+                  <p className="emp-ticket-customer">Ticket ID: {ticket.id}</p>
+                  <button 
+                    onClick={() => updateStatus(ticket.id, 'completed')}
+                    className="emp-btn emp-btn-complete"
+                  >
+                    <CheckCircle size={18} /> Mark Completed
+                  </button>
+                </div>
+              ))}
+              {washingCars.length === 0 && (
+                <div className="emp-empty">
+                  <CheckCircle size={48} opacity={0.2} />
+                  <p>No cars being washed.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
       </div>
-      {queue.length === 0 && <p style={{ marginTop: '20px' }}>No cars waiting right now.</p>}
     </div>
   )
 }

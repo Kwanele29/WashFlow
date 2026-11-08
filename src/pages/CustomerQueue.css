@@ -1,0 +1,172 @@
+/* ============ WashFlow Customer Queue ============ */
+.queue-page {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: "Poppins", "Inter", system-ui, -apple-system, sans-serif;
+  color: #fff;
+  
+  /* Background matching the rest of the app */
+  background: url("/assets/dash-bg.png") center center / cover no-repeat;
+  background-attachment: fixed;
+  overflow: hidden;
+}
+
+.queue-page__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 20, 40, 0.7); /* Dark overlay */
+  z-index: 1;
+}
+
+.queue-card {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 600px;
+  background: rgba(10, 29, 59, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(25, 167, 255, 0.3);
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.queue-card__avatar {
+  width: 80px;
+  height: 80px;
+  margin: -80px auto 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #0b63f6;
+  color: #fff;
+  border: 4px solid #0a1d3b;
+  box-shadow: 0 10px 28px rgba(11, 99, 246, 0.55);
+}
+
+.queue-card h2 {
+  text-align: center;
+  margin: 0 0 5px 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.queue-card__subtitle {
+  text-align: center;
+  color: #a0b3d6;
+  margin: 0 0 30px 0;
+  font-size: 1.1rem;
+}
+
+.queue-services {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.queue-service-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(7, 20, 40, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.queue-service-label.is-selected {
+  background: rgba(11, 99, 246, 0.2);
+  border: 2px solid #0b63f6;
+}
+
+.queue-service-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.queue-radio {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #0b63f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+
+.queue-service-label.is-selected .queue-radio {
+  background: #0b63f6;
+}
+
+.queue-service-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.queue-service-price {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #19a7ff;
+}
+
+.queue-btn-primary {
+  width: 100%;
+  padding: 18px;
+  border: none;
+  border-radius: 16px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(180deg, #1272ff, #0a5cf0);
+  box-shadow: 0 10px 26px rgba(11, 99, 246, 0.5);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.queue-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(11, 99, 246, 0.65);
+}
+
+.queue-btn-primary:disabled {
+  background: #4a5b78;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.queue-btn-cancel {
+  width: 100%;
+  padding: 15px;
+  background: transparent;
+  color: #a0b3d6;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: color 0.2s ease;
+}
+
+.queue-btn-cancel:hover {
+  color: #fff;
+}
+
+.queue-empty {
+  text-align: center;
+  color: #ff8a8a;
+  padding: 20px;
+}
