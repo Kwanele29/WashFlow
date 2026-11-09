@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { User, Mail, Phone, Lock, Eye, EyeOff, ArrowRight, UserPlus, Car } from "lucide-react";
 import { supabase } from "../lib/supabase"; 
 import { Link, useNavigate } from "react-router-dom"; 
-import "./SignUp.css";
+import "./Signup.css"; // FIXED: Matches your exact file name
 
 const INITIAL = {
   fullName: "",
@@ -143,7 +143,6 @@ export default function SignUp() {
 
         <form className="signup__form" onSubmit={handleSubmit} noValidate>
           
-          {/* FIXED ROLE DROPDOWN */}
           <div className="su-field-wrap">
              <div className="su-field" style={{ padding: '0 15px' }}>
                 <select 

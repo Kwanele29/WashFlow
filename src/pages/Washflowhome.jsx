@@ -13,7 +13,7 @@ import {
   Camera,
   Video,
 } from "lucide-react";
-import "./WashFlowHome.css";
+import "./Washflowhome.css"; // FIXED: Matches your exact file name
 
 // 1. HERE IS THE NEW LOGO COMPONENT
 const LogoMark = ({ height = 55 }) => (
@@ -47,7 +47,6 @@ export default function WashFlowHome({
     <div className="wf">
       <header className="wf-header">
         <a href="/" className="wf-brand" aria-label="WashFlow home">
-          {/* 2. HEADER LOGO UPDATED */}
           <span className="wf-brand__mark">
             <LogoMark height={55} />
           </span>
@@ -152,7 +151,6 @@ export default function WashFlowHome({
 
       <footer className="wf-footer">
         <a href="/" className="wf-brand wf-brand--small" aria-label="WashFlow home">
-          {/* 3. FOOTER LOGO UPDATED */}
           <span className="wf-brand__mark">
             <LogoMark height={40} />
           </span>
