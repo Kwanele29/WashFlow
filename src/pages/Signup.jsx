@@ -143,19 +143,20 @@ export default function SignUp() {
 
         <form className="signup__form" onSubmit={handleSubmit} noValidate>
           
+          {/* FIXED ROLE DROPDOWN */}
           <div className="su-field-wrap">
-             <label className="su-field" style={{ padding: '0 15px' }}>
+             <div className="su-field" style={{ padding: '0 15px' }}>
                 <select 
                   name="role" 
                   value={values.role} 
                   onChange={handleChange}
-                  style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', color: 'inherit', padding: '15px 0' }}
+                  style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', color: '#fff', padding: '15px 0', cursor: 'pointer' }}
                 >
-                  <option value="customer">I am a Customer</option>
-                  <option value="employee">I am an Employee</option>
-                  <option value="owner">I am the Owner</option>
+                  <option value="customer" style={{ color: 'black' }}>I am a Customer</option>
+                  <option value="employee" style={{ color: 'black' }}>I am an Employee</option>
+                  <option value="owner" style={{ color: 'black' }}>I am the Owner</option>
                 </select>
-             </label>
+             </div>
           </div>
 
           {renderField({ name: "fullName", placeholder: "Full Name", icon: User, autoComplete: "name" })}

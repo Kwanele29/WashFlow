@@ -42,10 +42,12 @@ export default function Login() {
         .single();
 
       // 3. Redirect based on role
-      if (profile?.role === 'employee' || profile?.role === 'owner') {
-        navigate('/employee'); // Send staff to employee dashboard
+      if (profile?.role === 'owner') {
+        navigate('/admin'); // <-- Owner goes to Admin Dashboard
+      } else if (profile?.role === 'employee') {
+        navigate('/employee'); // <-- Employee goes to Employee Dashboard
       } else {
-        navigate('/dashboard'); // Send customers to customer dashboard
+        navigate('/dashboard'); // <-- Customer goes to Customer Dashboard
       }
 
     } catch (err) {

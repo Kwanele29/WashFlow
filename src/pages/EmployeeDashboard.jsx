@@ -17,7 +17,6 @@ export default function EmployeeDashboard() {
   }, [])
 
   async function fetchQueue() {
-    // FETCHING WITHOUT THE PROFILE JOIN FIRST (To isolate the issue)
     const { data, error } = await supabase
       .from('queue_tickets')
       .select('*, services(name)')
@@ -26,9 +25,8 @@ export default function EmployeeDashboard() {
       
     if (error) {
       console.error("SUPABASE ERROR:", error)
-    } else {
-      console.log("RAW DATA FROM SUPABASE:", data)
-      if (data) setQueue(data)
+    } else if (data) {
+      setQueue(data)
     }
   }
 
@@ -38,15 +36,22 @@ export default function EmployeeDashboard() {
     if (newStatus === 'washing') {
       const { data } = await supabase.auth.getUser()
       updates.assigned_employee = data?.user?.id
-      updates.started_at = new Date()
+      updates.started_at = new Date().toISOString() // FIXED
     } else if (newStatus === 'completed') {
-      updates.completed_at = new Date()
+      updates.completed_at = new Date().toISOString() // FIXED
     }
 
-    await supabase
+    const { error } = await supabase
       .from('queue_tickets')
       .update(updates)
       .eq('id', ticketId)
+
+    if (error) {
+      alert("Error saving to database: " + error.message)
+      console.error(error)
+    } else {
+      fetchQueue()
+    }
   }
 
   const handleLogout = async () => {

@@ -7,6 +7,7 @@ import EmployeeDashboard from './pages/EmployeeDashboard'
 import Dashboard from './pages/Dashboard'
 import Services from './pages/Services'
 import Account from './pages/Account'
+import AdminDashboard from './pages/AdminDashboard' // <-- Added Admin Import
 
 function HomeWrapper() {
   const navigate = useNavigate()
@@ -43,6 +44,10 @@ function App() {
         <Route path="/employee" element={<EmployeeDashboard />} />
         <Route path="/services" element={<Services />} />
         <Route path="/account" element={<Account />} />
+        
+        {/* ADDED ADMIN ROUTE */}
+        <Route path="/admin" element={<AdminDashboard />} />
+        
       </Routes>
     </BrowserRouter>
   )

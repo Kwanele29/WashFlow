@@ -1,0 +1,43 @@
+/* WashFlow - AdminDashboard.css */
+.wf-root { min-height: 100vh; display: flex; color: #fff; font-family: Inter, system-ui, sans-serif; background-color: #030c24; background-size: cover; background-position: center; background-attachment: fixed; }
+.wf-root * { box-sizing: border-box; }
+.wf-side { width: 250px; flex-shrink: 0; padding: 22px 18px; display: flex; flex-direction: column; background: rgba(3,12,36,.82); border-right: 1px solid rgba(60,130,255,.35); backdrop-filter: blur(8px); }
+.wf-logo { text-align: center; margin-bottom: 30px; font-size: 34px; line-height: 1; }
+.wf-logo span { font-weight: 800; }
+.wf-logo b { font-weight: 800; color: #27b2ff; }
+.wf-logo small { display: block; font-size: 12px; margin-top: 8px; color: #dbe8ff; letter-spacing: .5px; }
+.wf-side nav { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.wf-side button { display: flex; align-items: center; gap: 14px; padding: 13px 16px; border: 0; border-radius: 12px; background: transparent; color: #e6efff; font-size: 15px; cursor: pointer; text-align: left; font-family: inherit; }
+.wf-side button:hover { background: rgba(40,110,255,.18); }
+.wf-side button.active { background: #1a6bff; box-shadow: 0 0 18px rgba(26,107,255,.6); font-weight: 600; }
+.wf-logout { margin-top: auto; }
+.wf-main { flex: 1; padding: 24px 28px; min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.wf-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.wf-head h1 { margin: 0; font-size: 34px; font-weight: 800; }
+.wf-head h1 em { font-style: normal; color: #27b2ff; }
+.wf-head p { margin: 6px 0 0; font-size: 17px; color: #e6efff; }
+.wf-head-right { display: flex; align-items: center; gap: 22px; }
+.wf-bell { position: relative; }
+.wf-user { display: flex; align-items: center; gap: 12px; padding: 6px 16px 6px 6px; border-radius: 40px; background: rgba(10,30,80,.6); font-weight: 600; }
+.avatar { width: 42px; height: 42px; border-radius: 50%; background: #1a6bff; display: grid; place-items: center; }
+.wf-card { background: rgba(5,18,52,.72); border: 1.5px solid rgba(40,130,255,.65); border-radius: 20px; padding: 18px 20px; box-shadow: 0 0 22px rgba(20,100,255,.25); backdrop-filter: blur(6px); min-width: 0; }
+.wf-card h3 { margin: 0 0 14px; font-size: 20px; font-weight: 700; }
+.wf-sub { font-size: 13px; font-weight: 400; color: #a9c4f5; margin-left: 8px; }
+.wf-grid-5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 16px; }
+.wf-grid-2 { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; }
+.wf-grid-2.wide-left { grid-template-columns: 1.6fr 1fr; }
+.wf-stat { display: flex; align-items: center; gap: 16px; padding: 18px; }
+.wf-stat-icon { color: #1f8bff; filter: drop-shadow(0 0 8px #1f8bff); }
+.wf-stat-value { font-size: 30px; font-weight: 800; line-height: 1.1; }
+.wf-stat-label { font-size: 14px; color: #e6efff; }
+.wf-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.wf-table th { text-align: left; font-weight: 600; padding: 9px 10px; background: rgba(40,90,200,.2); color: #e6efff; white-space: nowrap; }
+.wf-table td { padding: 10px; border-bottom: 1px solid rgba(100,150,255,.14); white-space: nowrap; }
+.wf-table .money { color: #5dffa8; font-weight: 600; }
+.wf-scroll { overflow-x: auto; }
+.wf-pill { display: inline-flex; align-items: center; gap: 7px; }
+.wf-pill i { width: 11px; height: 11px; border-radius: 50%; background: currentColor; }
+.wf-pill.ok { color: #33e08a; }
+.wf-pill.blue { color: #4db5ff; }
+.wf-pill.warn { color: #ffc933; }
+.wf-pill.muted { color: #c7d3ea; }
