@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   House, Clock, Car, Settings, LogOut, Bell, BellRing, ChevronDown, UserRound,
-  Eye, Lightbulb, Check, Droplets, Flag, Hourglass, ListOrdered,
+  Eye, Lightbulb, Check, Droplets, Flag, Hourglass, ListOrdered, Menu, X, Info
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +24,7 @@ const buildSteps = (queueNumber) => [
 export default function Dashboard({ onLogout }) {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const [user, setUser] = useState({ name: "Customer", firstName: "Customer" });
   const [ticket, setTicket] = useState(null);
@@ -31,6 +32,10 @@ export default function Dashboard({ onLogout }) {
   const [loading, setLoading] = useState(true);
   const [hasNotified, setHasNotified] = useState(false);
   const [isDataFullyLoaded, setIsDataFullyLoaded] = useState(false);
+
+  // NEW: Controls the red badge
+  const [hasUnreadNotification, setHasUnreadNotification] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -54,12 +59,34 @@ export default function Dashboard({ onLogout }) {
   useEffect(() => {
     if (isDataFullyLoaded && ticket?.status === 'waiting' && (queueStats.carsAhead === 1 || queueStats.carsAhead === 0) && !hasNotified) {
       setHasNotified(true);
-      alert("🔔 NOTIFICATION: Your turn is approaching! Please make your way to the car wash now.");
+      showToast("Your turn is approaching! Please make your way to the car wash now.");
+      setHasUnreadNotification(true); // Show red dot
     }
     if (queueStats.carsAhead > 1) {
       setHasNotified(false);
     }
   }, [queueStats.carsAhead, ticket, hasNotified, isDataFullyLoaded]);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 4000); 
+  };
+
+  const handleBellClick = () => {
+    // 1. Mark as read (hide red dot)
+    setHasUnreadNotification(false);
+
+    // 2. Show the toast message
+    if (!ticket) {
+      showToast("You have no new notifications. Join the queue to get updates.");
+    } else if (ticket.status === 'washing') {
+      showToast("Your car is currently being washed! We'll let you know when it's done.");
+    } else {
+      showToast(`You are currently #${queueStats.position} in line with ${queueStats.carsAhead} cars ahead.`);
+    }
+  };
 
   async function fetchMyTicket() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -79,6 +106,14 @@ export default function Dashboard({ onLogout }) {
       .maybeSingle();
 
     if (data) {
+      // If the status changed (e.g. waiting -> washing), show a new red dot
+      if (ticket && ticket.status !== data.status) {
+        setHasUnreadNotification(true);
+      } else if (!ticket) {
+        // If they just joined the queue, show a red dot
+        setHasUnreadNotification(true);
+      }
+      
       setTicket(data);
       const { count } = await supabase
         .from('queue_tickets')
@@ -89,6 +124,7 @@ export default function Dashboard({ onLogout }) {
       setQueueStats({ carsAhead: count || 0, position: (count || 0) + 1 });
     } else {
       setTicket(null);
+      setHasUnreadNotification(false);
     }
     setLoading(false);
     setIsDataFullyLoaded(true);
@@ -104,7 +140,34 @@ export default function Dashboard({ onLogout }) {
 
   return (
     <div className="dash">
-      <aside className="dash__sidebar">
+      
+      {toastMessage && (
+        <div className="toast-notification">
+          <div className="toast-icon"><Info size={24} /></div>
+          <div className="toast-text">{toastMessage}</div>
+          <button className="toast-close" onClick={() => setToastMessage(null)}>
+            <X size={18} />
+          </button>
+        </div>
+      )}
+
+      <header className="mobile-header">
+        <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
+          <Menu size={28} />
+        </button>
+        <img src="/assets/logo.png" alt="WashFlow" className="mobile-logo" />
+        <div style={{ width: 28 }}></div>
+      </header>
+
+      {isMobileMenuOpen && (
+        <div className="mobile-overlay" onClick={() => setIsMobileMenuOpen(false)}></div>
+      )}
+
+      <aside className={`dash__sidebar ${isMobileMenuOpen ? 'is-open' : ''}`}>
+        <button className="mobile-close-btn" onClick={() => setIsMobileMenuOpen(false)}>
+          <X size={24} />
+        </button>
+
         <a href="/" className="dash__logo" aria-label="WashFlow home">
           <img src="/assets/logo.png" alt="WashFlow" />
         </a>
@@ -131,10 +194,17 @@ export default function Dashboard({ onLogout }) {
           </div>
 
           <div className="dash__user-area">
-            <button type="button" className="dash__bell" aria-label="Notifications">
+            <button 
+              type="button" 
+              className="dash__bell" 
+              aria-label="Notifications"
+              onClick={handleBellClick}
+            >
               <Bell size={30} />
-              <span className="dash__badge">1</span>
+              {/* Only show the red badge if there is an unread notification */}
+              {hasUnreadNotification && ticket && <span className="dash__badge">1</span>}
             </button>
+
             <div className="dash__user">
               <button type="button" className="dash__user-btn" onClick={() => setMenuOpen((o) => !o)}>
                 <span className="dash__avatar"><UserRound size={28} /></span>
@@ -192,7 +262,6 @@ export default function Dashboard({ onLogout }) {
                 <span className="status__pct">{progress}%</span>
               </div>
 
-              {/* FINAL FIXED WAIT TIME LOGIC */}
               <div className="status__wait">
                 <span className="status__wait-label"><Clock size={34} /> Estimated Wait Time</span>
                 <span className="status__wait-value" style={{ color: (queueStats.carsAhead === 0 || ticket?.status === 'washing') ? '#19a7ff' : 'inherit' }}>
@@ -222,7 +291,7 @@ export default function Dashboard({ onLogout }) {
                 <button 
                   type="button" 
                   className="service__btn" 
-                  onClick={() => alert(`Service: ${ticket.services?.name}\nPrice: R${ticket.services?.price}\nEstimated Time: ${ticket.services?.est_minutes || 15} minutes`)}
+                  onClick={() => showToast(`Service: ${ticket.services?.name} | Price: R${ticket.services?.price}`)}
                 >
                   <Eye size={18} /> View Details
                 </button>

@@ -99,7 +99,6 @@
   gap: 40px;
   min-height: 590px;
   padding: 60px 40px 50px 90px;
-  /* Replace with your own hero photo (car being washed at night) */
   background:
     url("/assets/car-back.png") center right / cover no-repeat,
     radial-gradient(circle at 70% 50%, #1a3b73 0%, #0a1d3b 60%, #071428 100%);
@@ -111,7 +110,6 @@
   background: linear-gradient(90deg, rgba(7, 20, 40, 0.92) 0%, rgba(7, 20, 40, 0.55) 45%, rgba(7, 20, 40, 0.1) 100%);
   pointer-events: none;
 }
-/* decorative water splash on the left edge */
 .wf-hero::before {
   content: "";
   position: absolute;
@@ -272,25 +270,14 @@
 }
 .wf-powered strong { color: #fff; font-size: 1.05rem; font-weight: 600; }
 
-/* ---------- Responsive ---------- */
-@media (max-width: 1200px) {
-  .wf-hero { padding-left: 40px; }
-  .wf-features { grid-template-columns: repeat(3, 1fr); }
-}
-
-@media (max-width: 960px) {
-  .wf-header { flex-wrap: wrap; padding: 18px 20px; }
-  .wf-nav { order: 3; width: 100%; overflow-x: auto; }
-  .wf-hero { flex-direction: column; align-items: stretch; padding: 40px 20px; }
-  .wf-status { width: 100%; margin-top: 0; align-self: stretch; }
-  .wf-footer { flex-direction: column; text-align: center; }
-  .wf-footer__right { flex-direction: column; }
-  .wf-powered { border-left: 0; padding-left: 0; }
-}
-
-@media (max-width: 600px) {
-  .wf-auth { width: 100%; }
-  .wf-auth .wf-btn { flex: 1; }
-  .wf-features { grid-template-columns: 1fr 1fr; padding: 16px; }
-  .wf-hero__sub { font-size: 1.1rem; }
+/* ---------- Universal Mobile Responsiveness ---------- */
+@media (max-width: 1024px) {
+  .wf-header { flex-direction: column !important; padding: 15px !important; gap: 15px !important; }
+  .wf-nav { width: 100% !important; overflow-x: auto !important; justify-content: flex-start !important; padding-bottom: 10px; }
+  .wf-nav__link { white-space: nowrap !important; padding: 8px 15px !important; }
+  .wf-auth { width: 100% !important; justify-content: space-between !important; }
+  .wf-hero { flex-direction: column !important; padding: 30px 15px !important; text-align: center; }
+  .wf-hero__title { font-size: 2.5rem !important; }
+  .wf-status { width: 100% !important; margin-top: 20px !important; }
+  .wf-features { grid-template-columns: 1fr !important; }
 }

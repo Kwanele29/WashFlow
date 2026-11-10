@@ -41,3 +41,18 @@
 .wf-pill.blue { color: #4db5ff; }
 .wf-pill.warn { color: #ffc933; }
 .wf-pill.muted { color: #c7d3ea; }
+
+/* ============ Universal Mobile Responsiveness ============ */
+@media (max-width: 1024px) {
+  .wf-root { flex-direction: column !important; }
+  .wf-side { width: 100% !important; flex-direction: row !important; flex-wrap: wrap !important; padding: 10px 15px !important; border-right: none !important; border-bottom: 1px solid rgba(60,130,255,.35) !important; }
+  .wf-logo { margin: 0 15px 0 0 !important; font-size: 20px !important; }
+  .wf-side nav { flex-direction: row !important; flex-wrap: wrap !important; gap: 5px !important; }
+  .wf-side button { padding: 8px 12px !important; font-size: 13px !important; }
+  .wf-logout { margin-top: 0 !important; margin-left: auto !important; }
+  .wf-main { padding: 15px !important; }
+  .wf-grid-5, .wf-grid-2 { display: grid !important; grid-template-columns: 1fr !important; gap: 15px !important; }
+  .wf-head { flex-direction: column !important; gap: 15px !important; }
+  .wf-head h1 { font-size: 24px !important; }
+  .wf-table { font-size: 12px !important; }
+}
