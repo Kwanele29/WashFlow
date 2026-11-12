@@ -9,6 +9,12 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  // State for password reset
+  const [resetMode, setResetMode] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetMsg, setResetMsg] = useState("");
+
   const navigate = useNavigate();
 
   const handleChange = (e) =>
@@ -43,11 +49,11 @@ export default function Login() {
 
       // 3. Redirect based on role
       if (profile?.role === 'owner') {
-        navigate('/admin'); // <-- Owner goes to Admin Dashboard
+        navigate('/admin'); 
       } else if (profile?.role === 'employee') {
-        navigate('/employee'); // <-- Employee goes to Employee Dashboard
+        navigate('/employee'); 
       } else {
-        navigate('/dashboard'); // <-- Customer goes to Customer Dashboard
+        navigate('/dashboard'); 
       }
 
     } catch (err) {
@@ -71,6 +77,30 @@ export default function Login() {
     }
   };
 
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!resetEmail.trim()) return;
+    
+    try {
+      setLoading(true);
+      setError("");
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: window.location.origin + '/login', // In a real app, this would be a /update-password page
+      });
+
+      if (error) throw error;
+      
+      setResetMsg("Password reset link sent! Check your email inbox.");
+      setResetEmail("");
+      
+    } catch (err) {
+      setError(err?.message || "Failed to send reset email.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="login">
       <div className="login__overlay" />
@@ -88,67 +118,111 @@ export default function Login() {
         <div className="login__avatar">
           <UserRound size={44} strokeWidth={2} />
         </div>
-        <h2 id="login-title">Login</h2>
-        <p className="login__subtitle">Access your account</p>
+        
+        {resetMode ? (
+          <>
+            <h2 id="login-title">Reset Password</h2>
+            <p className="login__subtitle">Enter your email to receive a reset link</p>
+            
+            <form className="login__form" onSubmit={handleResetPassword} noValidate>
+              <label className="field">
+                <User size={22} className="field__icon" />
+                <input
+                  type="email"
+                  placeholder="Email Address"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                />
+              </label>
 
-        <form className="login__form" onSubmit={handleSubmit} noValidate>
-          <label className="field">
-            <User size={22} className="field__icon" />
-            <input
-              type="email"
-              name="identifier"
-              placeholder="Email Address"
-              autoComplete="username"
-              value={form.identifier}
-              onChange={handleChange}
-            />
-          </label>
+              {resetMsg && <p style={{ color: "#4ade80", fontSize: "0.9rem", textAlign: "center" }}>{resetMsg}</p>}
+              {error && <p className="login__error" role="alert">{error}</p>}
 
-          <label className="field">
-            <Lock size={22} className="field__icon" />
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Password"
-              autoComplete="current-password"
-              value={form.password}
-              onChange={handleChange}
-            />
-            <button
-              type="button"
-              className="field__toggle"
-              onClick={() => setShowPassword((s) => !s)}
-            >
-              {showPassword ? <Eye size={22} /> : <EyeOff size={22} />}
-            </button>
-          </label>
+              <button type="submit" className="btn btn--primary" disabled={loading}>
+                {loading ? "Sending..." : <>Send Reset Link <ArrowRight size={20} /></>}
+              </button>
 
-          {error && <p className="login__error" role="alert">{error}</p>}
+              <button 
+                type="button" 
+                className="btn btn--ghost" 
+                onClick={() => { setResetMode(false); setResetMsg(""); setError(""); }}
+                style={{ marginTop: "10px" }}
+              >
+                Back to Login
+              </button>
+            </form>
+          </>
+        ) : (
+          <>
+            <h2 id="login-title">Login</h2>
+            <p className="login__subtitle">Access your account</p>
 
-          <button type="submit" className="btn btn--primary" disabled={loading}>
-            {loading ? "Logging in..." : <>Login <ArrowRight size={20} /></>}
-          </button>
+            <form className="login__form" onSubmit={handleSubmit} noValidate>
+              <label className="field">
+                <User size={22} className="field__icon" />
+                <input
+                  type="email"
+                  name="identifier"
+                  placeholder="Email Address"
+                  autoComplete="username"
+                  value={form.identifier}
+                  onChange={handleChange}
+                />
+              </label>
 
-          <div className="login__divider"><span>or</span></div>
+              <label className="field">
+                <Lock size={22} className="field__icon" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  autoComplete="current-password"
+                  value={form.password}
+                  onChange={handleChange}
+                />
+                <button
+                  type="button"
+                  className="field__toggle"
+                  onClick={() => setShowPassword((s) => !s)}
+                >
+                  {showPassword ? <Eye size={22} /> : <EyeOff size={22} />}
+                </button>
+              </label>
 
-          <button type="button" className="btn btn--ghost" onClick={handleGoogleLogin} style={{ backgroundColor: 'white', color: '#333', border: 'none' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M22.56 12.25C22.56 11.47 22.49 10.72 22.36 10H12V14.26H17.92C17.67 15.63 16.86 16.79 15.69 17.57V20.34H19.26C21.35 18.42 22.56 15.6 22.56 12.25Z" fill="#4285F4"/>
-              <path d="M12 23C14.97 23 17.46 22.02 19.26 20.34L15.69 17.57C14.71 18.23 13.46 18.63 12 18.63C9.16 18.63 6.75 16.71 5.88 14.15H2.21V16.99C4.01 20.56 7.72 23 12 23Z" fill="#34A853"/>
-              <path d="M5.88 14.15C5.66 13.49 5.54 12.77 5.54 12C5.54 11.23 5.66 10.51 5.88 9.85V7.01H2.21C1.47 8.49 1 10.19 1 12C1 13.81 1.47 15.51 2.21 16.99L5.88 14.15Z" fill="#FBBC05"/>
-              <path d="M12 5.38C13.62 5.38 15.06 5.94 16.2 7.03L19.34 3.89C17.45 2.13 14.97 1 12 1C7.72 1 4.01 3.44 2.21 7.01L5.88 9.85C6.75 7.29 9.16 5.38 12 5.38Z" fill="#EA4335"/>
-            </svg>
-            Continue with Google
-          </button>
+              <div style={{ textAlign: "right", marginBottom: "10px" }}>
+                <button 
+                  type="button" 
+                  onClick={() => setResetMode(true)}
+                  style={{ background: "none", border: "none", color: "#19a7ff", fontSize: "0.9rem", cursor: "pointer" }}
+                >
+                  Forgot Password?
+                </button>
+              </div>
 
-          <button type="button" className="btn btn--ghost" onClick={() => navigate('/dashboard')}>
-            <Car size={26} /> Continue as Guest
-          </button>
-        </form>
+              {error && <p className="login__error" role="alert">{error}</p>}
 
-        <p className="login__footer">
-          Don&apos;t have an account? <Link to="/signup">Sign Up</Link>
-        </p>
+              <button type="submit" className="btn btn--primary" disabled={loading}>
+                {loading ? "Logging in..." : <>Login <ArrowRight size={20} /></>}
+              </button>
+
+              <div className="login__divider"><span>or</span></div>
+
+              <button type="button" className="btn btn--ghost" onClick={handleGoogleLogin} style={{ backgroundColor: 'white', color: '#333', border: 'none' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M22.56 12.25C22.56 11.47 22.49 10.72 22.36 10H12V14.26H17.92C17.67 15.63 16.86 16.79 15.69 17.57V20.34H19.26C21.35 18.42 22.56 15.6 22.56 12.25Z" fill="#4285F4"/>
+                  <path d="M12 23C14.97 23 17.46 22.02 19.26 20.34L15.69 17.57C14.71 18.23 13.46 18.63 12 18.63C9.16 18.63 6.75 16.71 5.88 14.15H2.21V16.99C4.01 20.56 7.72 23 12 23Z" fill="#34A853"/>
+                  <path d="M5.88 14.15C5.66 13.49 5.54 12.77 5.54 12C5.54 11.23 5.66 10.51 5.88 9.85V7.01H2.21C1.47 8.49 1 10.19 1 12C1 13.81 1.47 15.51 2.21 16.99L5.88 14.15Z" fill="#FBBC05"/>
+                  <path d="M12 5.38C13.62 5.38 15.06 5.94 16.2 7.03L19.34 3.89C17.45 2.13 14.97 1 12 1C7.72 1 4.01 3.44 2.21 7.01L5.88 9.85C6.75 7.29 9.16 5.38 12 5.38Z" fill="#EA4335"/>
+                </svg>
+                Continue with Google
+              </button>
+            </form>
+
+            <p className="login__footer">
+              Don&apos;t have an account? <Link to="/signup">Sign Up</Link>
+            </p>
+          </>
+        )}
       </section>
     </main>
   );

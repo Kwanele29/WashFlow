@@ -56,7 +56,6 @@ export default function AdminDashboard() {
   }, []);
 
   async function fetchData() {
-    // Fetch all jobs
     const { data: jobsData } = await supabase
       .from('queue_tickets')
       .select('*, services(name, price), profiles(full_name)');
@@ -72,7 +71,7 @@ export default function AdminDashboard() {
           serviceId: j.service_id,
           service: j.services?.name || 'Wash',
           price: j.services?.price || 0,
-          status: j.status, // Keeping it exactly as it is in the DB (lowercase)
+          status: j.status, 
           employeeId: j.assigned_employee
         };
       });
@@ -99,7 +98,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // FIXED CAPITALIZATION: Looking for 'completed' instead of 'Completed'
   const completedJobs = jobs.filter(j => j.status === 'completed');
   const revenue = completedJobs.reduce((a, j) => a + j.price, 0);
 
@@ -119,6 +117,7 @@ export default function AdminDashboard() {
           <button className={view === "dashboard" ? "active" : ""} onClick={() => setView("dashboard")}><I n="home" /> <span>Dashboard</span></button>
           <button className={view === "services" ? "active" : ""} onClick={() => setView("services")}><I n="tag" /> <span>Prices &amp; Services</span></button>
           <button className={view === "history" ? "active" : ""} onClick={() => setView("history")}><I n="history" /> <span>Queue History</span></button>
+          <button className={view === "staff" ? "active" : ""} onClick={() => setView("staff")}><I n="users" /> <span>Staff Management</span></button>
         </nav>
         <button className="wf-logout" onClick={handleLogout}><I n="logout" /> <span>Logout</span></button>
       </aside>
@@ -233,7 +232,176 @@ export default function AdminDashboard() {
             </div>
           </section>
         )}
+
+        {view === "staff" && <StaffView />}
       </main>
+    </div>
+  );
+}
+
+function StaffView() {
+  const [staff, setStaff] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [msg, setMsg] = useState(null);
+
+  useEffect(() => {
+    fetchStaff();
+  }, []);
+
+  async function fetchStaff() {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .in('role', ['employee', 'owner'])
+      .order('full_name');
+    if (data) setStaff(data);
+    setLoading(false);
+  }
+
+  async function createEmployee(e) {
+    e.preventDefault();
+    setMsg(null);
+    
+    if (!fullName || !email || !password) {
+      return setMsg({ type: 'error', text: 'Please fill in all fields.' });
+    }
+    if (password.length < 6) {
+      return setMsg({ type: 'error', text: 'Password must be at least 6 characters.' });
+    }
+
+    setCreating(true);
+
+    // Use a temporary client so the Admin doesn't get logged out
+    const { createClient } = await import('@supabase/supabase-js');
+    const tempSupabase = createClient(
+      import.meta.env.VITE_SUPABASE_URL,
+      import.meta.env.VITE_SUPABASE_ANON_KEY,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    // 1. Create the user in Supabase Auth
+    // CRITICAL FIX: We pass the role in the metadata so the trigger picks it up
+    const { data, error } = await tempSupabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          role: 'employee' // <--- This tells the trigger they are an employee
+        }
+      }
+    });
+
+    if (error) {
+      setCreating(false);
+      return setMsg({ type: 'error', text: 'Error creating account: ' + error.message });
+    }
+
+    // Fallback: If the trigger didn't update the profile, we try manually
+    if (data.user) {
+      await supabase
+        .from('profiles')
+        .update({ full_name: fullName, role: 'employee' })
+        .eq('id', data.user.id);
+    }
+
+    setMsg({ type: 'success', text: `Employee ${fullName} created successfully! Give them the email and password to log in.` });
+    setFullName('');
+    setEmail('');
+    setPassword('');
+    setCreating(false);
+    fetchStaff(); 
+  }
+
+  if (loading) return <p>Loading staff...</p>;
+
+  return (
+    <div className="wf-grid-2 wide-left">
+      {/* CREATE EMPLOYEE FORM */}
+      <section className="wf-card">
+        <h3>Add New Employee</h3>
+        <p style={{ color: '#a9c4f5', marginBottom: '20px', fontSize: '0.9rem' }}>
+          Create login details for a new staff member. They can log in immediately.
+        </p>
+
+        <form onSubmit={createEmployee} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <div>
+            <label style={{ fontSize: '0.85rem', color: '#a9c4f5' }}>Full Name</label>
+            <input 
+              type="text" 
+              value={fullName} 
+              onChange={(e) => setFullName(e.target.value)} 
+              placeholder="e.g. Luyanda Mthembu"
+              className="wf-input" 
+              style={{ width: '100%', marginTop: '5px' }}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: '0.85rem', color: '#a9c4f5' }}>Email Address</label>
+            <input 
+              type="email" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              placeholder="employee@washflow.com"
+              className="wf-input" 
+              style={{ width: '100%', marginTop: '5px' }}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: '0.85rem', color: '#a9c4f5' }}>Temporary Password</label>
+            <input 
+              type="text" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              placeholder="Minimum 6 characters"
+              className="wf-input" 
+              style={{ width: '100%', marginTop: '5px' }}
+            />
+          </div>
+
+          {msg && (
+            <div style={{ padding: '10px', borderRadius: '8px', fontSize: '0.9rem', background: msg.type === 'error' ? 'rgba(220,50,50,0.2)' : 'rgba(22,163,74,0.2)', color: msg.type === 'error' ? '#ff8a8a' : '#4ade80' }}>
+              {msg.text}
+            </div>
+          )}
+
+          <button type="submit" className="wf-btn" disabled={creating} style={{ marginTop: '10px' }}>
+            {creating ? 'Creating...' : 'Create Employee Account'}
+          </button>
+        </form>
+      </section>
+
+      {/* CURRENT STAFF LIST */}
+      <section className="wf-card">
+        <h3>Current Staff</h3>
+        <div className="wf-scroll">
+          <table className="wf-table">
+            <thead>
+              <tr><th>Name</th><th>Role</th></tr>
+            </thead>
+            <tbody>
+              {staff.map((person) => (
+                <tr key={person.id}>
+                  <td>{person.full_name || 'No name'}</td>
+                  <td>
+                    <span style={{ 
+                      background: person.role === 'owner' ? '#f59e0b' : '#16a34a', 
+                      padding: '4px 10px', borderRadius: '12px', fontSize: '0.85rem', textTransform: 'capitalize'
+                    }}>
+                      {person.role}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }

@@ -67,7 +67,6 @@ export default function EmployeeDashboard() {
     try { return localStorage.getItem('wf_sound') !== 'off' } catch { return true }
   })
 
-  // Mobile menu state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const soundRef = useRef(soundOn)
@@ -77,7 +76,6 @@ export default function EmployeeDashboard() {
     try { localStorage.setItem('wf_sound', soundOn ? 'on' : 'off') } catch { /* ignore */ }
   }, [soundOn])
 
-  // stop the page behind the slide-out menu from scrolling while it is open
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
@@ -358,7 +356,7 @@ export default function EmployeeDashboard() {
                                 </button>
                               )}
                               {t.status === 'waiting' && firstWaiting && (
-                                <button className="row-btn call" disabled={busy} onClick={() => startWash(t)}>
+                                <button className="row-btn call" disabled={busy} onClick={() => setSelectedId(t.id)}>
                                   <Play size={16} /> Call Next
                                 </button>
                               )}
@@ -392,18 +390,27 @@ export default function EmployeeDashboard() {
                   {selected ? <>Selected: <b>#{selected.no} · {customerName(selected)}</b></> : 'Tap a car in the queue to pick it.'}
                 </p>
                 <div className="qa-list">
-                  <button className="qa-btn green" disabled={!nextCar || busy} onClick={() => startWash(nextCar)}>
+                  {/* 1. CALL NEXT: Selects the next car, but doesn't start the wash yet */}
+                  <button className="qa-btn green" disabled={!nextCar || busy} onClick={() => setSelectedId(nextCar.id)}>
                     <Play size={22} fill="currentColor" /> Call Next Car
                   </button>
+
+                  {/* 2. START WASHING: Only works if the car is selected and waiting */}
                   <button className="qa-btn blue" disabled={selected?.status !== 'waiting' || busy} onClick={() => startWash(selected)}>
                     <Droplets size={22} /> Start Washing
                   </button>
+
+                  {/* 3. COMPLETE WASH: Only works if the car is currently being washed */}
                   <button className="qa-btn navy" disabled={!completeTarget || busy} onClick={() => completeWash(completeTarget)}>
                     <CheckCircle size={22} /> Complete Wash
                   </button>
+
+                  {/* 4. MARK NO-SHOW: Cancels the selected car */}
                   <button className="qa-btn orange" disabled={selected?.status !== 'waiting' || busy} onClick={() => markNoShow(selected)}>
                     <UserX size={22} /> Mark No-Show
                   </button>
+
+                  {/* 5. CANCEL ENTRY: Cancels the selected car */}
                   <button className="qa-btn red" disabled={!selected || busy} onClick={() => cancelEntry(selected)}>
                     <XCircle size={22} /> Cancel Entry
                   </button>
