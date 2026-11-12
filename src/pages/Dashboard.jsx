@@ -8,9 +8,9 @@ import { useNavigate } from "react-router-dom";
 import "./Dashboard.css";
 
 /* ---------- things you may want to change ---------- */
-const BAYS = 2;                 
-const DEFAULT_MINUTES = 15;     
-const COMPLETED_VISIBLE_MIN = 30; 
+const BAYS = 2;
+const DEFAULT_MINUTES = 15;
+const COMPLETED_VISIBLE_MIN = 30;
 
 /* ---------- helpers ---------- */
 const startOfToday = () => {
@@ -49,6 +49,12 @@ export default function Dashboard({ onLogout }) {
   const statusCardRef = useRef(null);
   const notesCardRef = useRef(null);
 
+  // stop the page behind the slide-out menu from scrolling while it is open
+  useEffect(() => {
+    document.body.style.overflow = mobileMenu ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileMenu]);
+
   const showToast = useCallback((msg) => {
     setToastMessage(msg);
     clearTimeout(toastTimer.current);
@@ -80,7 +86,7 @@ export default function Dashboard({ onLogout }) {
 
   /* ---------- data ---------- */
   const fetchMyTicket = useCallback(async () => {
-    const my = ++reqRef.current; 
+    const my = ++reqRef.current;
     let uid = userRef.current;
     if (!uid) {
       const { data } = await supabase.auth.getUser();
@@ -121,8 +127,8 @@ export default function Dashboard({ onLogout }) {
           (ahead || []).reduce((sum, t) => sum + (t.services?.est_minutes || DEFAULT_MINUTES), 0) / BAYS
         );
       }
-      
-      // THE FIX: Queue number is strictly (cars ahead + 1) for waiting, or #1 if being washed
+
+      // Queue number is strictly (cars ahead + 1) for waiting, or #1 if being washed
       if (status === "waiting") {
         queueNumber = carsAhead + 1;
       } else if (status === "washing") {
@@ -200,7 +206,7 @@ export default function Dashboard({ onLogout }) {
       .from("queue_tickets")
       .update({ status: "cancelled" })
       .eq("id", ticket.id)
-      .eq("status", "waiting") 
+      .eq("status", "waiting")
       .select("id");
     setBusy(false);
     if (error) showToast("Could not cancel: " + error.message);
@@ -250,12 +256,16 @@ export default function Dashboard({ onLogout }) {
         </div>
       )}
 
+      {/* PHONE TOP BAR: menu - logo - bell */}
       <header className="mobile-header">
         <button className="mobile-menu-btn" onClick={() => setMobileMenu(true)} aria-label="Open menu">
           <Menu size={28} />
         </button>
         <img src="/assets/logo.png" alt="WashFlow" className="mobile-logo" />
-        <div style={{ width: 28 }} />
+        <button type="button" className="mobile-bell" aria-label="Notifications" onClick={handleBell}>
+          <Bell size={26} />
+          {unread > 0 && <span className="dash__badge">{unread}</span>}
+        </button>
       </header>
 
       {mobileMenu && <div className="mobile-overlay" onClick={() => setMobileMenu(false)} />}

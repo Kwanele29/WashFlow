@@ -2,17 +2,13 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import {
   Play, CheckCircle, Car, LogOut, Home, Clock, XCircle, UserX,
-  Droplets, Flag, Hourglass, History, Settings, Zap, Eye, ArrowUp, User,
+  Droplets, Flag, Hourglass, History, Settings, Zap, Eye, ArrowUp, User, Menu, X
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import './EmployeeDashboard.css'
 
-/* ---------- things you may want to change ---------- */
-const BAYS = 2             
-const DEFAULT_MINUTES = 15 
-
-/* ---------- helpers ---------- */
-// THE FIX: Explicitly target customer_id to stop the "multiple relationships" error
+const BAYS = 2
+const DEFAULT_MINUTES = 15
 const SELECT = '*, services(name, est_minutes), profiles!customer_id(full_name)'
 
 const startOfToday = () => {
@@ -53,9 +49,6 @@ function StatusPill({ ticket, firstWaiting }) {
   return <span className={`st-pill st-${cls}`}>{icon}{label}</span>
 }
 
-/* ====================================================================
-   MAIN COMPONENT
-==================================================================== */
 export default function EmployeeDashboard() {
   const navigate = useNavigate()
 
@@ -74,6 +67,9 @@ export default function EmployeeDashboard() {
     try { return localStorage.getItem('wf_sound') !== 'off' } catch { return true }
   })
 
+  // Mobile menu state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
   const soundRef = useRef(soundOn)
   const toastTimer = useRef(null)
   useEffect(() => {
@@ -81,13 +77,18 @@ export default function EmployeeDashboard() {
     try { localStorage.setItem('wf_sound', soundOn ? 'on' : 'off') } catch { /* ignore */ }
   }, [soundOn])
 
+  // stop the page behind the slide-out menu from scrolling while it is open
+  useEffect(() => {
+    document.body.style.overflow = isMobileMenuOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [isMobileMenuOpen])
+
   const notify = useCallback((text, type = 'ok') => {
     setToast({ text, type })
     clearTimeout(toastTimer.current)
     toastTimer.current = setTimeout(() => setToast(null), 3500)
   }, [])
 
-  /* ---------- data ---------- */
   const fetchQueue = useCallback(async () => {
     const start = startOfToday().toISOString()
 
@@ -148,7 +149,6 @@ export default function EmployeeDashboard() {
     return () => { clearInterval(clock); window.removeEventListener('online', up); window.removeEventListener('offline', down) }
   }, [])
 
-  /* ---------- derived ---------- */
   const numbered = useMemo(() => {
     const sorted = [...tickets].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
     return sorted.map((t, i) => ({ ...t, no: t.queue_number ?? t.ticket_number ?? i + 1 }))
@@ -173,7 +173,6 @@ export default function EmployeeDashboard() {
   const greeting = hour < 12 ? 'Good Morning' : hour < 18 ? 'Good Afternoon' : 'Good Evening'
   const firstName = (me?.name || '').split(' ')[0]
 
-  /* ---------- actions ---------- */
   async function updateStatus(ticket, newStatus, okMessage) {
     const allowedFrom = newStatus === 'washing' ? ['waiting'] : newStatus === 'completed' ? ['washing'] : ['waiting', 'washing']
     const updates = { status: newStatus }
@@ -228,21 +227,42 @@ export default function EmployeeDashboard() {
     navigate('/login')
   }
 
-  /* ---------- render ---------- */
+  const goTab = (key) => { setTab(key); setIsMobileMenuOpen(false) }
+
   return (
     <div className="emp-layout">
-      <aside className="emp-sidebar">
+
+      {/* MOBILE TOP HEADER */}
+      <header className="mobile-header">
+        <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(true)} aria-label="Open menu">
+          <Menu size={28} />
+        </button>
+        <img src="/assets/logo.png" alt="WashFlow" className="mobile-logo" />
+        <div style={{ width: 28 }}></div>
+      </header>
+
+      {/* MOBILE OVERLAY */}
+      {isMobileMenuOpen && (
+        <div className="mobile-overlay" onClick={() => setIsMobileMenuOpen(false)}></div>
+      )}
+
+      {/* SIDEBAR */}
+      <aside className={`emp-sidebar ${isMobileMenuOpen ? 'is-open' : ''}`}>
+        <button className="mobile-close-btn" onClick={() => setIsMobileMenuOpen(false)} aria-label="Close menu">
+          <X size={24} />
+        </button>
+
         <div className="emp-logo">
           <img src="/assets/logo.png" alt="WashFlow" />
         </div>
         <nav className="emp-nav">
-          <button className={`emp-nav-item ${tab === 'dashboard' ? 'active' : ''}`} onClick={() => setTab('dashboard')}>
+          <button className={`emp-nav-item ${tab === 'dashboard' ? 'active' : ''}`} onClick={() => goTab('dashboard')}>
             <Home size={20} /> Employee Dashboard
           </button>
-          <button className={`emp-nav-item ${tab === 'history' ? 'active' : ''}`} onClick={() => setTab('history')}>
+          <button className={`emp-nav-item ${tab === 'history' ? 'active' : ''}`} onClick={() => goTab('history')}>
             <History size={20} /> Queue History
           </button>
-          <button className={`emp-nav-item ${tab === 'settings' ? 'active' : ''}`} onClick={() => setTab('settings')}>
+          <button className={`emp-nav-item ${tab === 'settings' ? 'active' : ''}`} onClick={() => goTab('settings')}>
             <Settings size={20} /> Settings
           </button>
         </nav>
@@ -253,7 +273,7 @@ export default function EmployeeDashboard() {
 
       <main className="emp-main">
         <header className="emp-header">
-          <div>
+          <div className="emp-welcome">
             <h1>{greeting}{firstName ? ', ' : ''}<span className="accent">{firstName}{firstName ? '!' : ''}</span></h1>
             <p>Manage the queue and keep customers moving.</p>
           </div>
@@ -313,7 +333,7 @@ export default function EmployeeDashboard() {
                 </div>
 
                 <div className="q-scroll">
-                  <table className="q-table">
+                  <table className="q-table q-cards">
                     <thead>
                       <tr><th>#</th><th>Customer</th><th>Service</th><th>Status</th><th>Action</th></tr>
                     </thead>
@@ -328,10 +348,10 @@ export default function EmployeeDashboard() {
                             onClick={() => isActive && setSelectedId(selectedId === t.id ? null : t.id)}
                           >
                             <td className="q-no">#{t.no}</td>
-                            <td>{customerName(t)}</td>
-                            <td>{t.services?.name || '—'}</td>
-                            <td><StatusPill ticket={t} firstWaiting={firstWaiting} /></td>
-                            <td onClick={(e) => e.stopPropagation()}>
+                            <td className="q-cust">{customerName(t)}</td>
+                            <td className="q-svc">{t.services?.name || '—'}</td>
+                            <td className="q-stat"><StatusPill ticket={t} firstWaiting={firstWaiting} /></td>
+                            <td className="q-act" onClick={(e) => e.stopPropagation()}>
                               {t.status === 'washing' && (
                                 <button className="row-btn complete" disabled={busy} onClick={() => completeWash(t)}>
                                   <CheckCircle size={16} /> Complete
@@ -357,7 +377,7 @@ export default function EmployeeDashboard() {
                         )
                       })}
                       {tableRows.length === 0 && (
-                        <tr><td colSpan="5" className="q-empty">No cars in the queue right now.</td></tr>
+                        <tr className="q-empty-row"><td colSpan="5" className="q-empty">No cars in the queue right now.</td></tr>
                       )}
                     </tbody>
                   </table>
@@ -369,7 +389,7 @@ export default function EmployeeDashboard() {
                   <h2 className="panel-title"><Zap size={24} className="bolt" /> Quick Actions</h2>
                 </div>
                 <p className="qa-hint">
-                  {selected ? <>Selected: <b>#{selected.no} · {customerName(selected)}</b></> : 'Tap a row in the queue to pick a car.'}
+                  {selected ? <>Selected: <b>#{selected.no} · {customerName(selected)}</b></> : 'Tap a car in the queue to pick it.'}
                 </p>
                 <div className="qa-list">
                   <button className="qa-btn green" disabled={!nextCar || busy} onClick={() => startWash(nextCar)}>
@@ -458,9 +478,6 @@ export default function EmployeeDashboard() {
   )
 }
 
-/* ====================================================================
-   QUEUE HISTORY
-==================================================================== */
 function HistoryView({ meId }) {
   const [range, setRange] = useState('today')
   const [mineOnly, setMineOnly] = useState(false)
@@ -472,8 +489,7 @@ function HistoryView({ meId }) {
     async function load() {
       setLoading(true)
       let q = supabase.from('queue_tickets')
-        // THE FIX applied here too
-        .select('*, services(name), profiles!customer_id(full_name)') 
+        .select('*, services(name), profiles!customer_id(full_name)')
         .in('status', ['completed', 'cancelled'])
         .order('created_at', { ascending: false })
         .limit(200)
@@ -513,7 +529,7 @@ function HistoryView({ meId }) {
       </div>
 
       <div className="q-scroll tall">
-        <table className="q-table">
+        <table className="q-table q-stack">
           <thead>
             <tr><th>Date</th><th>Customer</th><th>Service</th><th>Status</th><th>Time Taken</th></tr>
           </thead>
@@ -522,16 +538,16 @@ function HistoryView({ meId }) {
               const mins = minutesBetween(t.started_at, t.completed_at)
               return (
                 <tr key={t.id}>
-                  <td>{fmtDateTime(t.completed_at || t.created_at)}</td>
-                  <td>{customerName(t)}</td>
-                  <td>{t.services?.name || '—'}</td>
-                  <td><StatusPill ticket={t} /></td>
-                  <td>{mins ? `${mins} min` : '—'}</td>
+                  <td data-label="Date">{fmtDateTime(t.completed_at || t.created_at)}</td>
+                  <td data-label="Customer">{customerName(t)}</td>
+                  <td data-label="Service">{t.services?.name || '—'}</td>
+                  <td data-label="Status"><StatusPill ticket={t} /></td>
+                  <td data-label="Time Taken">{mins ? `${mins} min` : '—'}</td>
                 </tr>
               )
             })}
-            {!loading && rows.length === 0 && <tr><td colSpan="5" className="q-empty">Nothing here yet.</td></tr>}
-            {loading && <tr><td colSpan="5" className="q-empty">Loading…</td></tr>}
+            {!loading && rows.length === 0 && <tr className="q-empty-row"><td colSpan="5" className="q-empty">Nothing here yet.</td></tr>}
+            {loading && <tr className="q-empty-row"><td colSpan="5" className="q-empty">Loading…</td></tr>}
           </tbody>
         </table>
       </div>
@@ -539,9 +555,6 @@ function HistoryView({ meId }) {
   )
 }
 
-/* ====================================================================
-   SETTINGS
-==================================================================== */
 function SettingsView({ me, soundOn, setSoundOn, notify, onNameSaved }) {
   const [name, setName] = useState(me?.name || '')
   const [saving, setSaving] = useState(false)
@@ -583,9 +596,6 @@ function SettingsView({ me, soundOn, setSoundOn, notify, onNameSaved }) {
   )
 }
 
-/* ====================================================================
-   TICKET DETAILS (View button)
-==================================================================== */
 function TicketModal({ ticket, onClose }) {
   const mins = minutesBetween(ticket.started_at, ticket.completed_at)
   const rows = [

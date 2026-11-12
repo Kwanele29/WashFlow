@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Zap,
   ArrowRight,
@@ -12,6 +12,8 @@ import {
   Globe,
   Camera,
   Video,
+  Menu,
+  X,
 } from "lucide-react";
 import "./Washflowhome.css"; // FIXED: Matches your exact file name
 
@@ -43,6 +45,9 @@ export default function WashFlowHome({
   onSignIn = () => {},
   onCreateAccount = () => {},
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const closeMenu = () => setMenuOpen(false);
+
   return (
     <div className="wf">
       <header className="wf-header">
@@ -52,25 +57,38 @@ export default function WashFlowHome({
           </span>
         </a>
 
-        <nav className="wf-nav" aria-label="Main">
-          {NAV_LINKS.map((link, i) => (
-            <a
-              key={link}
-              href={`#${link.toLowerCase().replace(/\s+/g, "-")}`}
-              className={`wf-nav__link ${i === 0 ? "is-active" : ""}`}
-            >
-              {link}
-            </a>
-          ))}
-        </nav>
+        <button
+          type="button"
+          className="wf-menu-toggle"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((o) => !o)}
+        >
+          {menuOpen ? <X size={26} /> : <Menu size={26} />}
+        </button>
 
-        <div className="wf-auth">
-          <button className="wf-btn wf-btn--outline" onClick={onSignIn}>
-            Sign In
-          </button>
-          <button className="wf-btn wf-btn--primary" onClick={onCreateAccount}>
-            Create Account
-          </button>
+        <div className={`wf-menu ${menuOpen ? "is-open" : ""}`}>
+          <nav className="wf-nav" aria-label="Main">
+            {NAV_LINKS.map((link, i) => (
+              <a
+                key={link}
+                href={`#${link.toLowerCase().replace(/\s+/g, "-")}`}
+                className={`wf-nav__link ${i === 0 ? "is-active" : ""}`}
+                onClick={closeMenu}
+              >
+                {link}
+              </a>
+            ))}
+          </nav>
+
+          <div className="wf-auth">
+            <button className="wf-btn wf-btn--outline" onClick={() => { closeMenu(); onSignIn(); }}>
+              Sign In
+            </button>
+            <button className="wf-btn wf-btn--primary" onClick={() => { closeMenu(); onCreateAccount(); }}>
+              Create Account
+            </button>
+          </div>
         </div>
       </header>
 
@@ -117,6 +135,7 @@ export default function WashFlowHome({
             <span className="wf-status__big">#{queueNumber}</span>
           </div>
 
+          <div className="wf-status__pair">
           <div className="wf-status__block">
             <span className="wf-status__label">Estimated Wait Time</span>
             <span className="wf-status__value">
@@ -131,6 +150,7 @@ export default function WashFlowHome({
             <span className="wf-status__value">
               <Car size={30} className="wf-blue" /> {carsAhead}
             </span>
+          </div>
           </div>
 
           <button className="wf-btn wf-btn--primary wf-btn--block" onClick={onTrackQueue}>

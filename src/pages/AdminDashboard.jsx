@@ -111,16 +111,16 @@ export default function AdminDashboard() {
   if (loading) return <div className="wf-root" style={{ padding: '50px', color: 'white' }}>Loading Dashboard...</div>;
 
   return (
-    <div className="wf-root" style={{ backgroundImage: `linear-gradient(rgba(2,8,28,.55), rgba(2,8,28,.75)), url('/assets/dash-bg.png')` }}>
+    <div className="wf-root">
       
       <aside className="wf-side">
         <div className="wf-logo"><span>Wash</span><b>Flow</b><small>Queue • Track • Relax</small></div>
         <nav>
-          <button className={view === "dashboard" ? "active" : ""} onClick={() => setView("dashboard")}><I n="home" /> Dashboard</button>
-          <button className={view === "services" ? "active" : ""} onClick={() => setView("services")}><I n="tag" /> Prices & Services</button>
-          <button className={view === "history" ? "active" : ""} onClick={() => setView("history")}><I n="history" /> Queue History</button>
+          <button className={view === "dashboard" ? "active" : ""} onClick={() => setView("dashboard")}><I n="home" /> <span>Dashboard</span></button>
+          <button className={view === "services" ? "active" : ""} onClick={() => setView("services")}><I n="tag" /> <span>Prices &amp; Services</span></button>
+          <button className={view === "history" ? "active" : ""} onClick={() => setView("history")}><I n="history" /> <span>Queue History</span></button>
         </nav>
-        <button className="wf-logout" onClick={handleLogout}><I n="logout" /> Logout</button>
+        <button className="wf-logout" onClick={handleLogout}><I n="logout" /> <span>Logout</span></button>
       </aside>
 
       <main className="wf-main">
@@ -131,33 +131,34 @@ export default function AdminDashboard() {
           </div>
           <div className="wf-head-right">
             <div className="wf-bell"><I n="bell" size={26} /></div>
-            <div className="wf-user"><div className="avatar"><I n="users" size={20} /></div>Admin</div>
+            <div className="wf-user"><div className="avatar"><I n="users" size={20} /></div><span>Admin</span></div>
           </div>
         </header>
 
         {view === "dashboard" && (
           <>
-            <div className="wf-grid-2">
-              <section className="wf-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '30px' }}>
+            <div className="wf-grid-2 wf-grid-stats">
+              <section className="wf-card wf-big">
                 <I n="car" size={48} />
-                <h2 style={{ fontSize: '3rem', margin: '10px 0' }}>{completedJobs.length}</h2>
-                <p style={{ fontSize: '1.2rem', color: '#a9c4f5' }}>Cars Washed</p>
+                <h2 className="wf-big-value">{completedJobs.length}</h2>
+                <p className="wf-big-label">Cars Washed</p>
               </section>
-              <section className="wf-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '30px' }}>
+              <section className="wf-card wf-big">
                 <I n="cash" size={48} />
-                <h2 style={{ fontSize: '3rem', margin: '10px 0', color: '#5dffa8' }}>{money(revenue)}</h2>
-                <p style={{ fontSize: '1.2rem', color: '#a9c4f5' }}>Money Made</p>
+                <h2 className="wf-big-value money">{money(revenue)}</h2>
+                <p className="wf-big-label">Money Made</p>
               </section>
             </div>
 
             <div className="wf-grid-2">
               <section className="wf-card">
                 <h3>Recent Queue Activity</h3>
-                <table className="wf-table">
+                <table className="wf-table wf-stack">
                   <thead><tr><th>Time</th><th>Queue No.</th><th>Customer</th><th>Service</th><th>Status</th></tr></thead>
                   <tbody>
+                    {jobs.length === 0 && <tr className="wf-empty"><td colSpan={5}>No queue activity yet.</td></tr>}
                     {jobs.slice(0, 5).map(j => (
-                      <tr key={j.id}><td>{j.time}</td><td>#{j.queueNo}</td><td>{j.customer}</td><td>{j.service}</td><td><StatusPill s={j.status} /></td></tr>
+                      <tr key={j.id}><td data-label="Time">{j.time}</td><td data-label="Queue No.">#{j.queueNo}</td><td data-label="Customer">{j.customer}</td><td data-label="Service">{j.service}</td><td data-label="Status"><StatusPill s={j.status} /></td></tr>
                     ))}
                   </tbody>
                 </table>
@@ -165,12 +166,12 @@ export default function AdminDashboard() {
 
               <section className="wf-card">
                 <h3>Staff <span className="wf-sub">cars washed &amp; money made</span></h3>
-                <table className="wf-table">
+                <table className="wf-table wf-stack">
                   <thead><tr><th>Employee</th><th>Cars</th><th>Made</th></tr></thead>
                   <tbody>
                     {employees.map(e => {
                       const mine = completedJobs.filter(j => j.employeeId === e.id);
-                      return <tr key={e.id}><td>{e.name}</td><td>{mine.length}</td><td className="money">{money(mine.reduce((a, j) => a + j.price, 0))}</td></tr>;
+                      return <tr key={e.id}><td data-label="Employee">{e.name}</td><td data-label="Cars">{mine.length}</td><td data-label="Made" className="money">{money(mine.reduce((a, j) => a + j.price, 0))}</td></tr>;
                     })}
                   </tbody>
                 </table>
@@ -183,7 +184,7 @@ export default function AdminDashboard() {
           <div className="wf-grid-2 wide-left">
             <section className="wf-card">
               <h3>Services &amp; Prices</h3>
-              <table className="wf-table">
+              <table className="wf-table wf-stack">
                 <thead>
                   <tr>
                     <th>Service</th>
@@ -194,9 +195,9 @@ export default function AdminDashboard() {
                 <tbody>
                   {services.map(s => (
                     <tr key={s.id}>
-                      <td>{s.name}</td>
-                      <td className="money">{money(s.price)}</td>
-                      <td>
+                      <td data-label="Service">{s.name}</td>
+                      <td data-label="Current Price" className="money">{money(s.price)}</td>
+                      <td data-label="Edit Price">
                         {editingServiceId === s.id ? (
                           <div className="wf-inline">
                             <input type="number" className="wf-input sm" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
@@ -219,12 +220,12 @@ export default function AdminDashboard() {
           <section className="wf-card">
             <h3>Queue History <span className="wf-sub">all time · {jobs.length} cars</span></h3>
             <div className="wf-scroll">
-              <table className="wf-table">
+              <table className="wf-table wf-stack">
                 <thead><tr><th>Time</th><th>Queue No.</th><th>Customer</th><th>Service</th><th>Price</th><th>Status</th></tr></thead>
                 <tbody>
                   {jobs.map(j => (
                     <tr key={j.id}>
-                      <td>{j.time}</td><td>#{j.queueNo}</td><td>{j.customer}</td><td>{j.service}</td><td className="money">{money(j.price)}</td><td><StatusPill s={j.status} /></td>
+                      <td data-label="Time">{j.time}</td><td data-label="Queue No.">#{j.queueNo}</td><td data-label="Customer">{j.customer}</td><td data-label="Service">{j.service}</td><td data-label="Price" className="money">{money(j.price)}</td><td data-label="Status"><StatusPill s={j.status} /></td>
                     </tr>
                   ))}
                 </tbody>
