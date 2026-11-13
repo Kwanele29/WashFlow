@@ -390,27 +390,27 @@ export default function EmployeeDashboard() {
                   {selected ? <>Selected: <b>#{selected.no} · {customerName(selected)}</b></> : 'Tap a car in the queue to pick it.'}
                 </p>
                 <div className="qa-list">
-                  {/* 1. CALL NEXT: Selects the next car, but doesn't start the wash yet */}
+                  {/* 1. CALL NEXT: Only selects the next car. Does NOT start the wash. */}
                   <button className="qa-btn green" disabled={!nextCar || busy} onClick={() => setSelectedId(nextCar.id)}>
                     <Play size={22} fill="currentColor" /> Call Next Car
                   </button>
 
-                  {/* 2. START WASHING: Only works if the car is selected and waiting */}
+                  {/* 2. START WASHING: Only works after a car is selected. */}
                   <button className="qa-btn blue" disabled={selected?.status !== 'waiting' || busy} onClick={() => startWash(selected)}>
                     <Droplets size={22} /> Start Washing
                   </button>
 
-                  {/* 3. COMPLETE WASH: Only works if the car is currently being washed */}
+                  {/* 3. COMPLETE WASH */}
                   <button className="qa-btn navy" disabled={!completeTarget || busy} onClick={() => completeWash(completeTarget)}>
                     <CheckCircle size={22} /> Complete Wash
                   </button>
 
-                  {/* 4. MARK NO-SHOW: Cancels the selected car */}
+                  {/* 4. MARK NO-SHOW */}
                   <button className="qa-btn orange" disabled={selected?.status !== 'waiting' || busy} onClick={() => markNoShow(selected)}>
                     <UserX size={22} /> Mark No-Show
                   </button>
 
-                  {/* 5. CANCEL ENTRY: Cancels the selected car */}
+                  {/* 5. CANCEL ENTRY */}
                   <button className="qa-btn red" disabled={!selected || busy} onClick={() => cancelEntry(selected)}>
                     <XCircle size={22} /> Cancel Entry
                   </button>

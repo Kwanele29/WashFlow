@@ -56,11 +56,13 @@ export default function AdminDashboard() {
   }, []);
 
   async function fetchData() {
-    const { data: jobsData } = await supabase
+    const { data: jobsData, error: jobsError } = await supabase
       .from('queue_tickets')
-      .select('*, services(name, price), profiles(full_name)');
+      .select('*, services(name, price), profiles!customer_id(full_name)');
     
-    if (jobsData) {
+    if (jobsError) {
+      console.error("Error fetching jobs:", jobsError);
+    } else if (jobsData) {
       const formattedJobs = jobsData.map(j => {
         const d = new Date(j.created_at);
         return {
@@ -285,14 +287,13 @@ function StaffView() {
     );
 
     // 1. Create the user in Supabase Auth
-    // CRITICAL FIX: We pass the role in the metadata so the trigger picks it up
     const { data, error } = await tempSupabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName,
-          role: 'employee' // <--- This tells the trigger they are an employee
+          role: 'employee'
         }
       }
     });
