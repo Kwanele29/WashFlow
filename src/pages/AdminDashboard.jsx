@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { supabase } from "../lib/supabase";
 import { useNavigate } from "react-router-dom";
 import "./AdminDashboard.css";
@@ -22,6 +22,8 @@ const ICONS = {
   check: ["M22 11.1V12a10 10 0 1 1-5.9-9.1", "M22 4L12 14l-3-3"],
   cash: ["M2 6h20v12H2z", "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"],
   plus: "M12 5v14M5 12h14",
+  menu: "M3 6h18M3 12h18M3 18h18",
+  close: "M18 6L6 18M6 6l12 12",
 };
 const I = ({ n, size }) => <Icon d={ICONS[n]} size={size} />;
 
@@ -47,6 +49,7 @@ export default function AdminDashboard() {
   const [services, setServices] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const [editingServiceId, setEditingServiceId] = useState(null);
   const [editPrice, setEditPrice] = useState("");
@@ -54,6 +57,16 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // phone menu: lock page scroll while open, close with Escape
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    const onKey = (e) => { if (e.key === "Escape") setMenuOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => { document.body.style.overflow = ""; window.removeEventListener("keydown", onKey); };
+  }, [menuOpen]);
+
+  const goView = useCallback((v) => { setView(v); setMenuOpen(false); }, []);
 
   async function fetchData() {
     const { data: jobsData, error: jobsError } = await supabase
@@ -112,14 +125,29 @@ export default function AdminDashboard() {
 
   return (
     <div className="wf-root">
-      
-      <aside className="wf-side">
+
+      {/* phone top bar: menu button + logo */}
+      <div className="wf-topbar">
+        <button type="button" className="wf-menu-btn" aria-label="Open menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}>
+          <I n="menu" size={26} />
+        </button>
+        <div className="wf-logo wf-logo--bar"><span>Wash</span><b>Flow</b></div>
+        <span className="wf-topbar-space" />
+      </div>
+
+      {/* dark layer behind the open menu (phone only) */}
+      <div className={`wf-overlay ${menuOpen ? "open" : ""}`} onClick={() => setMenuOpen(false)} />
+
+      <aside className={`wf-side ${menuOpen ? "open" : ""}`} aria-label="Main menu">
+        <button type="button" className="wf-side-close" aria-label="Close menu" onClick={() => setMenuOpen(false)}>
+          <I n="close" size={22} />
+        </button>
         <div className="wf-logo"><span>Wash</span><b>Flow</b><small>Queue • Track • Relax</small></div>
         <nav>
-          <button className={view === "dashboard" ? "active" : ""} onClick={() => setView("dashboard")}><I n="home" /> <span>Dashboard</span></button>
-          <button className={view === "services" ? "active" : ""} onClick={() => setView("services")}><I n="tag" /> <span>Prices &amp; Services</span></button>
-          <button className={view === "history" ? "active" : ""} onClick={() => setView("history")}><I n="history" /> <span>Queue History</span></button>
-          <button className={view === "staff" ? "active" : ""} onClick={() => setView("staff")}><I n="users" /> <span>Staff Management</span></button>
+          <button className={view === "dashboard" ? "active" : ""} onClick={() => goView("dashboard")}><I n="home" /> <span>Dashboard</span></button>
+          <button className={view === "services" ? "active" : ""} onClick={() => goView("services")}><I n="tag" /> <span>Prices &amp; Services</span></button>
+          <button className={view === "history" ? "active" : ""} onClick={() => goView("history")}><I n="history" /> <span>Queue History</span></button>
+          <button className={view === "staff" ? "active" : ""} onClick={() => goView("staff")}><I n="users" /> <span>Staff Management</span></button>
         </nav>
         <button className="wf-logout" onClick={handleLogout}><I n="logout" /> <span>Logout</span></button>
       </aside>
@@ -381,15 +409,15 @@ function StaffView() {
       <section className="wf-card">
         <h3>Current Staff</h3>
         <div className="wf-scroll">
-          <table className="wf-table">
+          <table className="wf-table wf-stack">
             <thead>
               <tr><th>Name</th><th>Role</th></tr>
             </thead>
             <tbody>
               {staff.map((person) => (
                 <tr key={person.id}>
-                  <td>{person.full_name || 'No name'}</td>
-                  <td>
+                  <td data-label="Name">{person.full_name || 'No name'}</td>
+                  <td data-label="Role">
                     <span style={{ 
                       background: person.role === 'owner' ? '#f59e0b' : '#16a34a', 
                       padding: '4px 10px', borderRadius: '12px', fontSize: '0.85rem', textTransform: 'capitalize'
