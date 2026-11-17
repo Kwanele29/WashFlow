@@ -86,16 +86,18 @@ export default function Login() {
       setError("");
       
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: window.location.origin + '/login', // In a real app, this would be a /update-password page
+        redirectTo: window.location.origin + '/update-password',
       });
 
       if (error) throw error;
       
-      setResetMsg("Password reset link sent! Check your email inbox.");
+      setResetMsg("If that email has a WashFlow account, a link to set your password is on its way. Check your inbox (and spam).");
       setResetEmail("");
       
     } catch (err) {
-      setError(err?.message || "Failed to send reset email.");
+      setError(/rate limit/i.test(err?.message || "")
+        ? "Too many requests. Please wait a few minutes and try again."
+        : err?.message || "Failed to send reset email.");
     } finally {
       setLoading(false);
     }
@@ -122,7 +124,7 @@ export default function Login() {
         {resetMode ? (
           <>
             <h2 id="login-title">Reset Password</h2>
-            <p className="login__subtitle">Enter your email to receive a reset link</p>
+            <p className="login__subtitle">Enter your email to get a link to set a new password. New employees: use this to set your first password.</p>
             
             <form className="login__form" onSubmit={handleResetPassword} noValidate>
               <label className="field">

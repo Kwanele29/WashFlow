@@ -275,7 +275,6 @@ function StaffView() {
   
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [creating, setCreating] = useState(false);
   const [msg, setMsg] = useState(null);
 
@@ -296,12 +295,14 @@ function StaffView() {
   async function createEmployee(e) {
     e.preventDefault();
     setMsg(null);
-    
-    if (!fullName || !email || !password) {
-      return setMsg({ type: 'error', text: 'Please fill in all fields.' });
+
+    const name = fullName.trim();
+    const mail = email.trim().toLowerCase();
+    if (!name || !mail) {
+      return setMsg({ type: 'error', text: 'Please fill in the name and email.' });
     }
-    if (password.length < 6) {
-      return setMsg({ type: 'error', text: 'Password must be at least 6 characters.' });
+    if (!/^\S+@\S+\.\S+$/.test(mail)) {
+      return setMsg({ type: 'error', text: 'Enter a valid email address.' });
     }
 
     setCreating(true);
@@ -314,13 +315,17 @@ function StaffView() {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
+    // The employee sets their OWN password later, so nobody (not even the owner) ever knows it.
+    // Supabase needs some password to create the account, so we give it a long random one.
+    const throwaway = crypto.randomUUID() + crypto.randomUUID();
+
     // 1. Create the user in Supabase Auth
     const { data, error } = await tempSupabase.auth.signUp({
-      email,
-      password,
+      email: mail,
+      password: throwaway,
       options: {
         data: {
-          full_name: fullName,
+          full_name: name,
           role: 'employee'
         }
       }
@@ -331,20 +336,32 @@ function StaffView() {
       return setMsg({ type: 'error', text: 'Error creating account: ' + error.message });
     }
 
+    // Supabase quietly returns a user with no identities when the email is already registered
+    if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      setCreating(false);
+      return setMsg({ type: 'error', text: 'That email already has an account.' });
+    }
+
     // Fallback: If the trigger didn't update the profile, we try manually
     if (data.user) {
       await supabase
         .from('profiles')
-        .update({ full_name: fullName, role: 'employee' })
+        .update({ full_name: name, role: 'employee' })
         .eq('id', data.user.id);
     }
 
-    setMsg({ type: 'success', text: `Employee ${fullName} created successfully! Give them the email and password to log in.` });
+    // 2. Email them a link to choose their password
+    const { error: mailError } = await tempSupabase.auth.resetPasswordForEmail(mail, {
+      redirectTo: window.location.origin + '/update-password',
+    });
+
+    setMsg(mailError
+      ? { type: 'success', text: `${name} was added, but the email could not be sent (${mailError.message}). Tell them to open WashFlow, tap Login, then Forgot Password and use ${mail}.` }
+      : { type: 'success', text: `${name} was added. We emailed ${mail} a link to set their password. They can also tap Login, then Forgot Password.` });
     setFullName('');
     setEmail('');
-    setPassword('');
     setCreating(false);
-    fetchStaff(); 
+    fetchStaff();
   }
 
   if (loading) return <p>Loading staff...</p>;
@@ -355,7 +372,7 @@ function StaffView() {
       <section className="wf-card">
         <h3>Add New Employee</h3>
         <p style={{ color: '#a9c4f5', marginBottom: '20px', fontSize: '0.9rem' }}>
-          Create login details for a new staff member. They can log in immediately.
+          Add a staff member's name and email. They get an email with a link to choose their own password.
         </p>
 
         <form onSubmit={createEmployee} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
@@ -381,18 +398,6 @@ function StaffView() {
               style={{ width: '100%', marginTop: '5px' }}
             />
           </div>
-          <div>
-            <label style={{ fontSize: '0.85rem', color: '#a9c4f5' }}>Temporary Password</label>
-            <input 
-              type="text" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              placeholder="Minimum 6 characters"
-              className="wf-input" 
-              style={{ width: '100%', marginTop: '5px' }}
-            />
-          </div>
-
           {msg && (
             <div style={{ padding: '10px', borderRadius: '8px', fontSize: '0.9rem', background: msg.type === 'error' ? 'rgba(220,50,50,0.2)' : 'rgba(22,163,74,0.2)', color: msg.type === 'error' ? '#ff8a8a' : '#4ade80' }}>
               {msg.text}
@@ -400,7 +405,7 @@ function StaffView() {
           )}
 
           <button type="submit" className="wf-btn" disabled={creating} style={{ marginTop: '10px' }}>
-            {creating ? 'Creating...' : 'Create Employee Account'}
+            {creating ? 'Adding...' : 'Add Employee'}
           </button>
         </form>
       </section>

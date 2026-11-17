@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import WashFlowHome from './pages/Washflowhome' 
 import Login from './pages/Login'
 import Signup from './pages/Signup' 
+import ResetPassword from './pages/ResetPassword'
 import CustomerQueue from './pages/CustomerQueue'
 import EmployeeDashboard from './pages/EmployeeDashboard'
 import Dashboard from './pages/Dashboard'
@@ -40,6 +41,7 @@ function App() {
         <Route path="/" element={<HomeWrapper />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/update-password" element={<ResetPassword />} />
         <Route path="/dashboard" element={<DashboardWrapper />} />
         <Route path="/queue" element={<CustomerQueue />} />
         <Route path="/employee" element={<EmployeeDashboard />} />

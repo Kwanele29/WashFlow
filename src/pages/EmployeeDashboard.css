@@ -152,6 +152,7 @@
 .st-pill svg { flex-shrink: 0; }
 .st-waiting { background: #1976ff; }
 .st-inqueue { background: linear-gradient(90deg, #f59e0b, #f97316); }
+.st-called { background: linear-gradient(90deg, #0891d9, #19c4ff); box-shadow: 0 0 12px rgba(25, 196, 255, 0.45); }
 .st-washing { background: #16a34a; }
 .st-completed { background: rgba(25, 167, 255, 0.18); border: 1px solid rgba(25, 167, 255, 0.6); color: #8fdcff; }
 .st-cancelled { background: #7c2ae8; }

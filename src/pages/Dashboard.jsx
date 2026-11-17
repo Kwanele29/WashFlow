@@ -153,6 +153,11 @@ export default function Dashboard({ onLogout }) {
       if (status === "waiting" && carsAhead <= 1) {
         addNote(`${latest.id}:near`, "Your turn is approaching!", carsAhead === 0 ? "You're next in line." : "Only 1 car ahead of you.");
       }
+      // Employee pressed "Call Next": tell the customer to drive to the washing bay
+      if (status === "waiting" && latest.called_at) {
+        addNote(`${latest.id}:called:${latest.called_at}`, "It's your turn! Please drive to the washing bay.", "An employee is ready for your car now.");
+        try { if (navigator.vibrate) navigator.vibrate([250, 120, 250]); } catch { /* optional */ }
+      }
       if (status === "washing") addNote(`${latest.id}:washing`, "Your car is being washed!", "We'll let you know when it's done.");
       if (status === "completed") addNote(`${latest.id}:done`, "Your wash is complete!", "Thank you for choosing WashFlow.");
     } else {
@@ -235,11 +240,13 @@ export default function Dashboard({ onLogout }) {
 
   let bar = { cls: "is-waiting", label: "Waiting in Queue", icon: <Loader size={34} className="spin" /> };
   if (ticket?.status === "waiting" && stats.carsAhead === 0) bar = { cls: "is-next", label: "You're Next!", icon: <Loader size={34} className="spin" /> };
+  if (ticket?.status === "waiting" && ticket?.called_at) bar = { cls: "is-called", label: "Drive to the Bay!", icon: <Car size={34} /> };
   if (ticket?.status === "washing") bar = { cls: "is-washing", label: "Being Washed", icon: <Droplets size={34} /> };
   if (ticket?.status === "completed") bar = { cls: "is-done", label: "Completed", icon: <Check size={34} strokeWidth={3} /> };
 
   let waitText = `~ ${stats.waitMin} min`;
   if (ticket?.status === "waiting" && stats.carsAhead === 0) waitText = "You're next!";
+  if (ticket?.status === "waiting" && ticket?.called_at) waitText = "Come now!";
   if (ticket?.status === "washing") waitText = "In Wash Bay";
   if (ticket?.status === "completed") waitText = "Done";
 

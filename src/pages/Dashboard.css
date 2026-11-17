@@ -239,6 +239,8 @@
 .status__bar svg { flex-shrink: 0; }
 .status__bar.is-waiting { background: linear-gradient(90deg, #0b63f6, #1a82ff); box-shadow: 0 0 24px rgba(11, 99, 246, 0.5); }
 .status__bar.is-next { background: linear-gradient(90deg, #0891d9, #19c4ff); box-shadow: 0 0 26px rgba(25, 196, 255, 0.55); }
+.status__bar.is-called { background: linear-gradient(90deg, #f59e0b, #f97316); box-shadow: 0 0 26px rgba(249, 115, 22, 0.55); animation: calledPulse 1.4s ease-in-out infinite; }
+@keyframes calledPulse { 50% { filter: brightness(1.18); } }
 .status__bar.is-washing { background: linear-gradient(90deg, #16a34a, #22c55e); box-shadow: 0 0 24px rgba(34, 197, 94, 0.45); }
 .status__bar.is-done { background: linear-gradient(90deg, #0f766e, #14b8a6); box-shadow: 0 0 24px rgba(20, 184, 166, 0.45); }
 .spin { animation: dashSpin 1.6s linear infinite; }

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import {
   Play, CheckCircle, Car, LogOut, Home, Clock, XCircle, UserX,
-  Droplets, Flag, Hourglass, History, Settings, Zap, Eye, ArrowUp, User, Menu, X
+  Droplets, Flag, Hourglass, History, Settings, Zap, Eye, ArrowUp, User, Menu, X, BellRing
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import './EmployeeDashboard.css'
@@ -43,6 +43,7 @@ function StatusPill({ ticket, firstWaiting }) {
   let cls = ticket.status
   let icon = <Clock size={16} />
   if (ticket.status === 'waiting' && !firstWaiting) { label = 'In Queue'; cls = 'inqueue'; icon = <Car size={16} /> }
+  if (ticket.status === 'waiting' && ticket.called_at) { label = 'Called'; cls = 'called'; icon = <BellRing size={16} /> }
   if (ticket.status === 'washing') icon = <Droplets size={16} />
   if (ticket.status === 'completed') icon = <CheckCircle size={16} />
   if (ticket.status === 'cancelled') icon = <XCircle size={16} />
@@ -193,6 +194,31 @@ export default function EmployeeDashboard() {
     if (error) notify('Error: ' + error.message, 'error')
     else if (!data || data.length === 0) notify('That ticket was already changed by someone else.', 'error')
     else notify(okMessage)
+    fetchQueue()
+  }
+
+  // CALL NEXT: tells the customer (on their phone) to drive to the washing bay.
+  // It does NOT start the wash - the employee presses Start Washing when the car arrives.
+  async function callCustomer(ticket) {
+    if (!ticket || ticket.status !== 'waiting') return
+    setBusy(true)
+    const { data, error } = await supabase
+      .from('queue_tickets')
+      .update({ called_at: new Date().toISOString() })
+      .eq('id', ticket.id)
+      .eq('status', 'waiting')
+      .select('id')
+    setBusy(false)
+
+    if (error) {
+      const missing = /called_at/i.test(error.message || '')
+      notify(missing ? 'Database needs the called_at column (see the SQL in the instructions).' : 'Error: ' + error.message, 'error')
+    } else if (!data || data.length === 0) {
+      notify('That ticket was already changed by someone else.', 'error')
+    } else {
+      setSelectedId(ticket.id)
+      notify(`${customerName(ticket)} (#${ticket.no}) was notified to drive to the washing bay.`)
+    }
     fetchQueue()
   }
 
@@ -356,8 +382,8 @@ export default function EmployeeDashboard() {
                                 </button>
                               )}
                               {t.status === 'waiting' && firstWaiting && (
-                                <button className="row-btn call" disabled={busy} onClick={() => setSelectedId(t.id)}>
-                                  <Play size={16} /> Call Next
+                                <button className="row-btn call" disabled={busy} onClick={() => callCustomer(t)}>
+                                  <Play size={16} /> {t.called_at ? 'Call Again' : 'Call Next'}
                                 </button>
                               )}
                               {t.status === 'waiting' && !firstWaiting && (
@@ -387,12 +413,14 @@ export default function EmployeeDashboard() {
                   <h2 className="panel-title"><Zap size={24} className="bolt" /> Quick Actions</h2>
                 </div>
                 <p className="qa-hint">
-                  {selected ? <>Selected: <b>#{selected.no} · {customerName(selected)}</b></> : 'Tap a car in the queue to pick it.'}
+                  {selected
+                    ? <>Selected: <b>#{selected.no} · {customerName(selected)}</b>{selected.status === 'waiting' && selected.called_at ? ' · notified, press Start Washing when the car arrives' : ''}</>
+                    : 'Tap a car in the queue to pick it.'}
                 </p>
                 <div className="qa-list">
-                  {/* 1. CALL NEXT: Only selects the next car. Does NOT start the wash. */}
-                  <button className="qa-btn green" disabled={!nextCar || busy} onClick={() => setSelectedId(nextCar.id)}>
-                    <Play size={22} fill="currentColor" /> Call Next Car
+                  {/* 1. CALL NEXT: notifies the customer to drive to the bay. Does NOT start the wash. */}
+                  <button className="qa-btn green" disabled={!nextCar || busy} onClick={() => callCustomer(nextCar)}>
+                    <Play size={22} fill="currentColor" /> {nextCar?.called_at ? 'Call Again' : 'Call Next Car'}
                   </button>
 
                   {/* 2. START WASHING: Only works after a car is selected. */}
